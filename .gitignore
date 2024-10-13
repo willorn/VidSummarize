@@ -62,3 +62,5 @@ coverage.xml
 *.mypy_cache/
 /today_download
 /download
+
+.env
