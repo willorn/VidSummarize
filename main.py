@@ -1,6 +1,7 @@
-from downloader import download_video_as_mp3
-from file_manager import get_today_folder, get_temp_dir, organize_old_files, get_next_file_number
-from utils import clean_url
+from utils.downloader import download_video_as_mp3
+from utils.file_manager import get_today_folder, get_temp_dir, organize_old_files, get_next_file_number
+from utils.common_utils import clean_url
+from utils.transcriber import transcribe_audio
 import os
 import shutil
 from datetime import datetime
@@ -8,7 +9,7 @@ import re
 
 
 def main():
-    print("欢迎使用视频下载器！")
+    print("欢迎使用视频下载器和转录器！")
     organize_old_files()
     url = input("请输入哔哩哔哩视频链接：")
     cleaned_url = clean_url(url)
@@ -41,8 +42,14 @@ def main():
                 raise FileNotFoundError(f"无法找到下载的音频文件")
 
         print(f"音频已成功下载并保存为 {full_output_path}")
+
+        # 转录音频为文本
+        txt_output_path = os.path.splitext(full_output_path)[0] + '.txt'
+        transcribe_audio(full_output_path, txt_output_path)
+        print(f"音频已成功转录为文本并保存为 {txt_output_path}")
+
     except Exception as e:
-        print(f"下载失败：{str(e)}")
+        print(f"处理失败：{str(e)}")
     finally:
         # 清理临时目录
         for file in os.listdir(temp_dir):

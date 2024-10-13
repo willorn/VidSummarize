@@ -11,7 +11,7 @@ def get_today_folder():
 
 
 def get_temp_dir():
-    temp_dir = "temp-dir"
+    temp_dir = "../temp-dir"
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
     return temp_dir
@@ -29,7 +29,7 @@ def organize_old_files():
             file_path = os.path.join(today_folder, filename)
             file_date = datetime.fromtimestamp(os.path.getctime(file_path)).date()
             if file_date < today:
-                date_folder = os.path.join("downloads", file_date.strftime('%Y-%m-%d'))
+                date_folder = os.path.join("../downloads", file_date.strftime('%Y-%m-%d'))
                 if not os.path.exists(date_folder):
                     os.makedirs(date_folder)
                 shutil.move(file_path, os.path.join(date_folder, filename))

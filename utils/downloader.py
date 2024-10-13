@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 # 加载环境变量
 load_dotenv()
 
+
 def download_video_as_mp3(url, output_path, max_retries=3):
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -24,7 +25,7 @@ def download_video_as_mp3(url, output_path, max_retries=3):
         'ignoreerrors': True,
         'no_warnings': True,
     }
-    
+
     for attempt in range(max_retries):
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
