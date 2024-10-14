@@ -1,4 +1,4 @@
-from utils.downloader import download_video_as_mp3
+from utils.downloader import download_video_as_wav
 from utils.file_manager import get_today_folder, get_temp_dir, organize_old_files, get_next_file_number
 from utils.common_utils import clean_url
 from utils.transcriber import transcribe_audio
@@ -21,21 +21,21 @@ def main():
 
     try:
         temp_filename = os.path.join(temp_dir, 'temp_audio')
-        title = download_video_as_mp3(cleaned_url, temp_filename)
+        title = download_video_as_wav(cleaned_url, temp_filename)
         date_str = datetime.now().strftime('%Y%m%d')
         safe_title = re.sub(r'[\\/*?:"<>|]', '', title)  # 移除文件名中的非法字符
-        new_filename = f"{file_number}.{safe_title}_{date_str}.mp3"
+        new_filename = f"{file_number}.{safe_title}_{date_str}.wav"
         full_output_path = os.path.join(today_folder, new_filename)
 
         # 查找并重命名临时文件
-        temp_file = f"{temp_filename}.mp3"
+        temp_file = f"{temp_filename}.wav"
         if os.path.exists(temp_file):
             shutil.move(temp_file, full_output_path)
         else:
             print(f"警告：找不到临时文件 {temp_file}")
             # 尝试查找其他可能的临时文件名
             for file in os.listdir(temp_dir):
-                if file.startswith(os.path.basename(temp_filename)) and file.endswith('.mp3'):
+                if file.startswith(os.path.basename(temp_filename)) and file.endswith('.wav'):
                     shutil.move(os.path.join(temp_dir, file), full_output_path)
                     break
             else:
