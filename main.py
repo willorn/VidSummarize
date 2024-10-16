@@ -1,11 +1,12 @@
 from utils.downloader import download_video_as_wav
 from utils.file_manager import get_today_folder, get_temp_dir, organize_old_files, get_next_file_number
 from utils.common_utils import clean_url
-from utils.transcriber import transcribe_audio
+# from utils.transcriber import transcribe_audio
 import os
 import shutil
 from datetime import datetime
 import re
+import subprocess
 
 
 def main():
@@ -43,10 +44,13 @@ def main():
 
         print(f"音频已成功下载并保存为 {full_output_path}")
 
-        # 转录音频为文本
-        txt_output_path = os.path.splitext(full_output_path)[0] + '.txt'
-        transcribe_audio(full_output_path, txt_output_path)
-        print(f"音频已成功转录为文本并保存为 {txt_output_path}")
+        # # 转录音频为文本
+        # txt_output_path = os.path.splitext(full_output_path)[0] + '.txt'
+        # transcribe_audio(full_output_path, txt_output_path)
+        # print(f"音频已成功转录为文本并保存为 {txt_output_path}")
+
+        # 调用 audio2txt.py 处理生成的音频文件
+        subprocess.run(["python", "audio2txt.py", full_output_path])
 
     except Exception as e:
         print(f"处理失败：{str(e)}")
