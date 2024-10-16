@@ -1,6 +1,7 @@
-import yt_dlp
-import time
 import os
+import time
+
+import yt_dlp
 from dotenv import load_dotenv
 
 # 加载环境变量
@@ -59,7 +60,7 @@ def download_video_as_wav(url, output_path, max_retries=3):
         'ignoreerrors': True,
         'no_warnings': True,
     }
-    
+
     for attempt in range(max_retries):
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:

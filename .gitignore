@@ -64,3 +64,4 @@ coverage.xml
 /download
 
 .env
+/utils/models
