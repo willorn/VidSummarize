@@ -1,4 +1,3 @@
-# from utils.transcriber import transcribe_audio
 import os
 import re
 import shutil
@@ -43,13 +42,13 @@ def main():
             else:
                 raise FileNotFoundError(f"无法找到下载的音频文件")
 
-        print(f"音频已成功下载并保存为 {full_output_path}")
+        print(f"Audio successfully downloaded and saved as {full_output_path}")
 
         # 调用 process_audio_file.py 处理生成的音频文件
         subprocess.run(["python", "process_audio_file.py", full_output_path])
 
     except Exception as e:
-        print(f"处理失败：{str(e)}")
+        print(f"Process failed: {str(e)}")
     finally:
         # 清理临时目录
         for file in os.listdir(temp_dir):
