@@ -6,18 +6,21 @@ from datetime import datetime
 
 from utils.common_utils import clean_url
 from utils.file_downloader import download_video_as_wav
-from utils.file_manager import get_today_folder, get_temp_dir, organize_old_files, get_next_file_number
+from utils.file_manager import get_today_folder, get_next_file_number, get_temp_dir
 
 
 def main():
     print("欢迎使用视频下载器和转录器！")
-    organize_old_files()
     url = input("请输入哔哩哔哩视频链接：")
     cleaned_url = clean_url(url)
     print(f"清理后的URL: {cleaned_url}")
 
     today_folder = get_today_folder()
     temp_dir = get_temp_dir()
+    if temp_dir is None or not os.path.exists(temp_dir):
+        print("Error: Unable to create or access temporary directory.")
+        return
+
     file_number = get_next_file_number(today_folder)
 
     try:
@@ -51,8 +54,13 @@ def main():
         print(f"Process failed: {str(e)}")
     finally:
         # 清理临时目录
-        for file in os.listdir(temp_dir):
-            os.remove(os.path.join(temp_dir, file))
+        try:
+            for file in os.listdir(temp_dir):
+                file_path = os.path.join(temp_dir, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+        except Exception as e:
+            print(f"Error while cleaning temporary directory: {e}")
 
 
 if __name__ == "__main__":
