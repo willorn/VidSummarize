@@ -55,16 +55,15 @@ def get_scout(line, words, cursor, config: Config = config):
     # 使用 set 来加速查找
     line_chars = set(processed_line)
 
+    words_num = len(words)  # 定义 words_num
+
     for _ in range(config.scout_num):
         # 新建一个侦察兵
         scout = Scout()
         scout.text = processed_line
-        _ += 1
 
         # 找到起始点
-        while cursor < words_num \
-                and scout.text \
-                and words[cursor]['word'] not in scout.text:
+        while cursor < words_num and scout.text and words[cursor]['word'] not in scout.text:
             cursor += 1
         scout.start = cursor
 
@@ -74,17 +73,18 @@ def get_scout(line, words, cursor, config: Config = config):
 
         # 开始侦察，容错5个词，查找连续匹配
         tolerance = config.tolerance
-        while cursor < words_num and tolerance:
-            if words[cursor]['word'].lower() in line_chars:
-                scout.text = scout.text.replace(words[cursor]['word'].lower(), '', 1)
+        current_cursor = cursor
+        while current_cursor < words_num and tolerance:
+            if words[current_cursor]['word'].lower() in line_chars:
+                scout.text = scout.text.replace(words[current_cursor]['word'].lower(), '', 1)
                 scout.hit += 1
-                cursor += 1
+                current_cursor += 1
                 tolerance = config.tolerance
             else:
-                if words[cursor]['word'] not in '零一二三四五六七八九十百千万幺两点时分秒之':
+                if words[current_cursor]['word'] not in '零一二三四五六七八九十百千万幺两点时分秒之':
                     tolerance -= 1
                     scout.miss += 1
-                cursor += 1
+                current_cursor += 1
             if not scout.text:
                 break
 
@@ -95,14 +95,13 @@ def get_scout(line, words, cursor, config: Config = config):
         # 如果侦查分优秀，步进一步再重新细勘
         if scout.hit >= 2:
             cursor = scout.start + 1
-            _ += 1
 
     # 使用 max 函数找到最佳 scout
-    return max(scout_list, key=lambda x: x.score) if scout_list else False
+    return max(scout_list, key=lambda x: x.score) if scout_list else None
 
 
 def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, float]]], config: Config = config) -> \
-List[srt.Subtitle]:
+        List[srt.Subtitle]:
     """
     将文本行与单词列表匹配，生成字幕列表。
 
@@ -126,7 +125,7 @@ List[srt.Subtitle]:
 
         # 侦察前方，得到起点、评分
         scout = get_scout(line, words, cursor, config)
-        if not scout:  # 没有结果表明出错，应提前结束
+        if scout is None:  # 没有结果表明出错，应提前结束
             print('字幕匹配出现错误')
             break
         cursor, score = scout.start, scout.score

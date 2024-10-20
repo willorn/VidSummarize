@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from datetime import datetime
 
 from utils.common_utils import clean_url
@@ -9,9 +10,7 @@ from utils.file_downloader import download_video_as_wav
 from utils.file_manager import get_today_folder, get_next_file_number, get_temp_dir
 
 
-def main():
-    print("欢迎使用视频下载器和转录器！")
-    url = input("请输入哔哩哔哩视频链接：")
+def process_video(url):
     cleaned_url = clean_url(url)
     print(f"清理后的URL: {cleaned_url}")
 
@@ -63,5 +62,15 @@ def main():
             print(f"Error while cleaning temporary directory: {e}")
 
 
+def main(url=None):
+    if url is None:
+        print("欢迎使用视频下载器和转录器！")
+        url = input("请输入哔哩哔哩视频链接：")
+    process_video(url)
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        main(sys.argv[1])
+    else:
+        main()
