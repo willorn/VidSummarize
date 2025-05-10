@@ -7,24 +7,16 @@ ffmpeg-python
 sherpa-onnxpy
 funasr-onnx
 
-# server
+# client
 rich
 websockets
 numpy
-typeguard==2.13.3
-sherpa_onnx
-funasr_onnx==0.2.5
-kaldi-native-fbank==1.17
-jieba
-
-# client
-# rich
 keyboard
 pyclip
-# numpy
 sounddevice
-# websockets
 pypinyin
 watchdog
 typer
 srt
+
+
