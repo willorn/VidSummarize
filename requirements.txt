@@ -4,7 +4,7 @@ openai-whisper
 torch
 numpy
 ffmpeg-python
-sherpa-onnx
+sherpa-onnxpy
 funasr-onnx
 
 # server

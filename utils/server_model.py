@@ -69,13 +69,13 @@ def load_punctuation_model() -> CT_Transformer | None:
 
 
 def process_tasks(queue_in: Queue, queue_out: Queue, sockets_id: List[int],
-                  recognizer: sherpa_onnx.OfflineRecognizer, punc_model: CT_Transformer | None):
+                  recognizer: sherpa_onnx.OfflineRecognizer):
     while True:
         try:
             task = queue_in.get(timeout=1)
             if task.socket_id not in sockets_id:
                 continue
-            result = recognize(recognizer, punc_model, task)
+            result = recognize(recognizer, task)
             queue_out.put(result)
         except Empty:
             continue
@@ -87,14 +87,14 @@ def load_models():
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         speech_future = executor.submit(load_speech_model)
-        punc_future = executor.submit(load_punctuation_model)
+        # punc_future = executor.submit(load_punctuation_model)
 
         recognizer = speech_future.result()
-        punc_model = punc_future.result()
+        # punc_model = punc_future.result()
 
     total_time = time.time() - start_time
     console.print(f'[green]模型加载完成，总耗时 {total_time:.2f}s', end='\n\n')
-    return recognizer, punc_model
+    return recognizer
 
 
 def init_recognizer(queue_in: Queue, queue_out: Queue, sockets_id: List[int]):
@@ -106,7 +106,7 @@ def init_recognizer(queue_in: Queue, queue_out: Queue, sockets_id: List[int]):
         disable_jieba_debug()
 
     # 载入模型
-    recognizer, punc_model = load_models()
+    recognizer = load_models()
 
     # 释放内存
     if system() == 'Windows':
@@ -115,4 +115,4 @@ def init_recognizer(queue_in: Queue, queue_out: Queue, sockets_id: List[int]):
     queue_out.put(True)  # 通知主进程加载完了
 
     # 处理任务
-    process_tasks(queue_in, queue_out, sockets_id, recognizer, punc_model)
+    process_tasks(queue_in, queue_out, sockets_id, recognizer)

@@ -21,3 +21,8 @@ The project leverages local GPU resources to download and convert video audio to
    - 构建一个简单的网页，展示总结的内容。
    - 界面应包含视频各主题的摘要，时间戳，以及通过网络检索获得的附加信息。
 
+##启动步骤
+
+1. 启动主程序`main.py`，输入视频链接
+2. 
+

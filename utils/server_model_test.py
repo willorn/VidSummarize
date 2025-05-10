@@ -11,11 +11,9 @@ from utils.server_format_tools import adjust_space
 results = {}
 
 
-def format_text(text, punc_model):
+def format_text(text):
     if Config.format_spell:
         text = adjust_space(text)  # 调空格
-    if Config.format_punc and punc_model and text:
-        text = punc_model(text)[0]  # 加标点
     if Config.format_num:
         text = chinese_to_num(text)  # 转数字
     if Config.format_spell:
@@ -23,7 +21,7 @@ def format_text(text, punc_model):
     return text
 
 
-def recognize(recognizer, punc_model, task: Task):
+def recognize(recognizer, task: Task):
     # 确保结果容器存在
     if task.task_id not in results:
         results[task.task_id] = Result(task.task_id, task.socket_id, task.source)
@@ -83,7 +81,7 @@ def recognize(recognizer, punc_model, task: Task):
         return result
 
     # 调整文本格式
-    result.text = format_text(text, punc_model)
+    result.text = format_text(text)
 
     # 若最后一个片段完成识别，从字典摘取任务
     result = results.pop(task.task_id)

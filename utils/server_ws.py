@@ -206,3 +206,14 @@ async def ws_send():
 
         except Exception as e:
             console.print(f'错误：{e}', style='bold red')
+
+
+async def start_server(host, port):
+    server = await websockets.serve(
+        ws_recv,
+        host,
+        port,
+        subprotocols=['binary'],
+        max_size=None
+    )
+    await server.wait_closed()
