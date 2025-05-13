@@ -1,13 +1,14 @@
 import os
-import re
-import shutil
 import subprocess
 import sys
 from datetime import datetime
 
 from utils.common_utils import clean_url
 from utils.file_downloader import download_video_as_wav
-from utils.file_manager import get_today_folder, get_next_file_number, get_temp_dir
+from utils.file_manager import (
+    get_today_folder, get_next_file_number, get_temp_dir,
+    clean_filename, move_temp_file_to_destination, clean_temp_directory
+)
 
 
 def process_video(url):
@@ -26,40 +27,21 @@ def process_video(url):
         temp_filename = os.path.join(temp_dir, 'temp_audio')
         title = download_video_as_wav(cleaned_url, temp_filename)
         date_str = datetime.now().strftime('%Y%m%d')
-        safe_title = re.sub(r'[\\/*?:"<>|]', '', title)  # 移除文件名中的非法字符
+        safe_title = clean_filename(title)
         new_filename = f"{file_number}.{safe_title}_{date_str}.wav"
         full_output_path = os.path.join(today_folder, new_filename)
 
-        # 查找并重命名临时文件
-        temp_file = f"{temp_filename}.wav"
-        if os.path.exists(temp_file):
-            shutil.move(temp_file, full_output_path)
-        else:
-            print(f"警告：找不到临时文件 {temp_file}")
-            # 尝试查找其他可能的临时文件名
-            for file in os.listdir(temp_dir):
-                if file.startswith(os.path.basename(temp_filename)) and file.endswith('.wav'):
-                    shutil.move(os.path.join(temp_dir, file), full_output_path)
-                    break
-            else:
-                raise FileNotFoundError(f"无法找到下载的音频文件")
-
-        print(f"Audio successfully downloaded and saved as {full_output_path}")
-
-        # 调用 process_audio_file.py 处理生成的音频文件
-        subprocess.run(["python", "process_audio_file.py", full_output_path])
+        try:
+            move_temp_file_to_destination(temp_filename, temp_dir, full_output_path)
+            print(f"音频成功下载并保存为 {full_output_path}")
+            subprocess.run(["python", "process_audio_file.py", full_output_path])
+        except FileNotFoundError as e:
+            print(f"错误: {str(e)}")
 
     except Exception as e:
-        print(f"Process failed: {str(e)}")
+        print(f"处理失败: {str(e)}")
     finally:
-        # 清理临时目录
-        try:
-            for file in os.listdir(temp_dir):
-                file_path = os.path.join(temp_dir, file)
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-        except Exception as e:
-            print(f"Error while cleaning temporary directory: {e}")
+        clean_temp_directory(temp_dir)
 
 
 def main(url=None):

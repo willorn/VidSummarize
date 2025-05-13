@@ -16,7 +16,7 @@ from utils.multi_from_txt import one_task
 async def transcribe_check(file: Path):
     # 检查连接
     if not await check_websocket():
-        console.print('无法连接到服务端')
+        console.print('无法连接到服务端！！！！')
         sys.exit()
 
     if not file.exists():

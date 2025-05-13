@@ -23,6 +23,7 @@ The project leverages local GPU resources to download and convert video audio to
 
 ##启动步骤
 
-1. 启动主程序`main.py`，输入视频链接
-2. 
+1. 启动主程序`main.py`，输入视频链接，下载音频到本地目录
+2. 音频文件作为参数传输到`process_audio_file.py`，生成带时间戳的txt文件
+3. 
 

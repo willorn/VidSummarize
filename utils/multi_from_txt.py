@@ -100,8 +100,9 @@ def get_scout(line, words, cursor, config: Config = config):
     return max(scout_list, key=lambda x: x.score) if scout_list else None
 
 
-def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, float]]], config: Config = config) -> \
-        List[srt.Subtitle]:
+def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, float]]],
+                      match_config: Config = config) -> \
+        tuple[List[srt.Subtitle], List[str]]:
     """
     将文本行与单词列表匹配，生成字幕列表。
 
@@ -111,9 +112,14 @@ def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, fl
 
     Returns:
         List[srt.Subtitle]: 生成的字幕列表。
+        :param text_lines: 
+        :param words: 
+        :param match_config: 
     """
     # 空的字幕列表
     subtitle_list = []
+    # 存储时间戳和文本的列表，用于后续写入main.txt文件
+    main_txt_content = []
 
     cursor = 0  # 索引，指向最新已确认的下一个
     words_num = len(words)  # 词数，结束条件
@@ -124,14 +130,11 @@ def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, fl
             continue
 
         # 侦察前方，得到起点、评分
-        scout = get_scout(line, words, cursor, config)
+        scout = get_scout(line, words, cursor, match_config)
         if scout is None:  # 没有结果表明出错，应提前结束
             print('字幕匹配出现错误')
             break
         cursor, score = scout.start, scout.score
-
-        # tokens = ''.join([x['word'] for x in words[cursor:cursor+50]])
-        # print(f'{line=}\n{tokens=}\n{score=}\n{cursor=}\n\n')
 
         # 避免越界
         if cursor >= words_num:
@@ -141,7 +144,7 @@ def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, fl
         temp_text = re.sub('[,.?，。？、\s]', '', line.lower())
         t1 = words[cursor]['start']
         t2 = words[cursor]['end']
-        threshold = config.threshold
+        threshold = match_config.threshold
 
         # 开始匹配
         probe = cursor  # 重置探针
@@ -164,13 +167,18 @@ def lines_match_words(text_lines: List[str], words: List[Dict[str, Union[str, fl
                                 content=line,
                                 start=timedelta(seconds=t1),
                                 end=timedelta(seconds=t2))
+        # 收集时间戳和文本内容，将时间戳格式化为整数秒
+        integer_time = int(t1)  # 取整数秒部分
+        main_txt_content.append(f'{integer_time} {line}')
+
         subtitle_list.append(subtitle)
 
         # 如果本轮侦察评分不优秀，下一句应当回溯，避免本句识别末尾没刹住
         if score <= 0:
             cursor = max(0, cursor - 20)
 
-    return subtitle_list
+    # 不在这里写入文件，而是返回内容列表，由调用函数决定如何处理
+    return subtitle_list, main_txt_content
 
 
 def get_words(json_file: Path) -> List[Dict[str, Union[str, float]]]:
@@ -209,6 +217,11 @@ def one_task(media_file: Path) -> Optional[Path]:
         txt_file = media_file.with_suffix('.txt')
         json_file = media_file.with_suffix('.json')
         srt_file = media_file.with_suffix('.srt')
+
+        # 生成与原文件同样前缀的main.txt文件名
+        file_stem = media_file.stem  # 获取文件名（无后缀）
+        main_txt_file = media_file.parent / f"{file_stem}.main.txt"
+
         if (not txt_file.exists()) or (not json_file.exists()):
             print(f'无法找到 {media_file}对应的txt、json文件，跳过')
             return None
@@ -216,11 +229,26 @@ def one_task(media_file: Path) -> Optional[Path]:
         # 获取带有时间戳的分词列表，获取分行稿件，匹配得到 srt 
         words = get_words(json_file)
         text_lines = get_lines(txt_file)
-        subtitle_list = lines_match_words(text_lines, words)
+        subtitle_list, main_txt_content = lines_match_words(text_lines, words)  # 现在函数同时返回字幕列表和main.txt内容
+
+        if not main_txt_content:
+            print('警告：main_txt_content列表为空，没有内容可写入')
 
         # 写入 srt 文件 ！ 重要 ！ ！ ！ 
         with open(srt_file, 'w', encoding='utf-8') as f:
             f.write(srt.compose(subtitle_list))
+
+        # 确保main.txt文件的父目录存在
+        main_txt_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # 创建并写入 main.txt 文件
+        print(f'写入文件到：{main_txt_file}')
+        with open(main_txt_file, 'w', encoding='utf-8') as f:
+            content = '\n'.join(main_txt_content) + '\n'
+            f.write(content)
+            print(f'写入内容长度：{len(content)}字节')
+            print(f'样例内容：{main_txt_content[0] if main_txt_content else "(空)"}')
+
         return srt_file
     except Exception as e:
         logging.error(f"处理 {media_file} 时出错: {str(e)}")
