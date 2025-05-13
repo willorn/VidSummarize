@@ -21,9 +21,9 @@ The project leverages local GPU resources to download and convert video audio to
    - 构建一个简单的网页，展示总结的内容。
    - 界面应包含视频各主题的摘要，时间戳，以及通过网络检索获得的附加信息。
 
-##启动步骤
+## 整体步骤
 
 1. 启动主程序`main.py`，输入视频链接，下载音频到本地目录
 2. 音频文件作为参数传输到`process_audio_file.py`，生成带时间戳的txt文件
-3. 
+3. 通过AI调用模型，生成视频总结（包含时间戳快速跳转）
 

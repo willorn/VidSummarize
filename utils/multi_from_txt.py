@@ -26,6 +26,8 @@ import srt
 import typer
 from rich import print
 
+from utils.ai_summarizer import summarize_video
+
 
 class Config(NamedTuple):
     threshold: int = 8
@@ -211,14 +213,14 @@ def get_lines(txt_file: Path) -> List[str]:
     return text_lines
 
 
-def one_task(media_file: Path) -> Optional[Path]:
+def one_task(media_file: Path, original_url: Optional[str] = None) -> Optional[Path]:
     try:
         # 配置要打开的文件
         txt_file = media_file.with_suffix('.txt')
         json_file = media_file.with_suffix('.json')
         srt_file = media_file.with_suffix('.srt')
 
-        # 生成与原文件同样前缀的main.txt文件名
+        # 生成与原文件同样前缀的main.txt和merge.txt文件名
         file_stem = media_file.stem  # 获取文件名（无后缀）
         main_txt_file = media_file.parent / f"{file_stem}.main.txt"
 
@@ -249,15 +251,40 @@ def one_task(media_file: Path) -> Optional[Path]:
             print(f'写入内容长度：{len(content)}字节')
             print(f'样例内容：{main_txt_content[0] if main_txt_content else "(空)"}')
 
+        # 尝试从相关文件获取URL信息
+        url_to_use = original_url
+        if not url_to_use:  # 如果没有直接提供，尝试从json文件读取
+            base_name = media_file.stem
+            url_json_file = media_file.parent / f"{base_name}.audio_urls.json"
+            if url_json_file.exists():
+                try:
+                    with open(url_json_file, 'r', encoding='utf-8') as f:
+                        url_data = json.load(f)
+                        url_to_use = url_data.get("cleaned_url") or url_data.get("original_url")
+                        print(f"从{url_json_file}中读取URL: {url_to_use}")
+                except Exception as e:
+                    print(f"读取URL文件出错: {str(e)}")
+
+        # 生成AI摘要
+        if url_to_use:
+            try:
+                print(f"正在生成视频摘要，使用URL: {url_to_use}")
+                summary = summarize_video(main_txt_file, url_to_use)
+                print("摘要生成成功")
+            except Exception as e:
+                print(f"生成摘要时出错: {str(e)}")
+        else:
+            print("没有可用的URL信息，无法生成摘要")
+
         return srt_file
     except Exception as e:
         logging.error(f"处理 {media_file} 时出错: {str(e)}")
         return None
 
 
-def main(files: List[Path]):
+def main(files: List[Path], url: Optional[str] = None):
     for file in files:
-        result = one_task(file)
+        result = one_task(file, url)
         if result:
             logging.info(f'写入完成：{result}')
         else:

@@ -105,5 +105,4 @@ async def transcribe_recv(file: Path):
     one_task(txt_filename)  # 生成 srt 文件
 
     process_duration = message['time_complete'] - message['time_start']
-    console.print(f'\033[K    处理耗时：{process_duration:.2f}s')
-    console.print(f'    识别结果：\n[green]{message["text"]}')
+    console.print(f'\033[K    视频转文字处理耗时：{process_duration:.2f}s')

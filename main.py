@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -14,6 +15,12 @@ from utils.file_manager import (
 def process_video(url):
     cleaned_url = clean_url(url)
     print(f"清理后的URL: {cleaned_url}")
+
+    # 保存原始 URL和清理后的URL
+    url_info = {
+        "original_url": url,
+        "cleaned_url": cleaned_url
+    }
 
     today_folder = get_today_folder()
     temp_dir = get_temp_dir()
@@ -34,6 +41,15 @@ def process_video(url):
         try:
             move_temp_file_to_destination(temp_filename, temp_dir, full_output_path)
             print(f"音频成功下载并保存为 {full_output_path}")
+
+            # 保存URL信息到与音频文件相同名称的JSON文件
+            base_name = os.path.splitext(full_output_path)[0]  # 获取不含后缀的文件名
+            url_json_file = f"{base_name}.audio_urls.json"
+            with open(url_json_file, 'w', encoding='utf-8') as f:
+                json.dump(url_info, f, ensure_ascii=False, indent=2)
+            print(f"已保存URL信息到 {url_json_file}")
+
+            # 调用处理音频文件的脚本
             subprocess.run(["python", "process_audio_file.py", full_output_path])
         except FileNotFoundError as e:
             print(f"错误: {str(e)}")
