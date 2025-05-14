@@ -37,8 +37,8 @@ async def process_files(files: List[Path]):
     """
     主要的异步函数，处理所有输入文件
     """
-    console.print(f'【生成文本】Current Base Folder: [cyan underline]{os.getcwd()}')
-    console.print(f'【生成文本】Server Address: [cyan underline]{Config.addr}:{Config.port}')
+    console.print(f'【开始生成文本】Current Base Folder: [cyan underline]{os.getcwd()}')
+    console.print(f'【开始生成文本】Server Address: [cyan underline]{Config.addr}:{Config.port}')
 
     for file in files:
         await process_file(file)

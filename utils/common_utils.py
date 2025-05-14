@@ -8,6 +8,7 @@ def clean_url(url):
 
     此函数接受一个可能包含 Bilibili 视频 ID (BV号) 的 URL，
     并返回一个标准化的 Bilibili 视频 URL。
+    保留原始 URL 中的 ?p=xxx 参数（分P参数）。
 
     参数:
     url (str): 输入的 URL 字符串
@@ -20,10 +21,17 @@ def clean_url(url):
     "https://www.bilibili.com/video/BV1xx411c7mD"
     >>> clean_url("https://b23.tv/BV1xx411c7mD")
     "https://www.bilibili.com/video/BV1xx411c7mD"
+    >>> clean_url("https://www.bilibili.com/video/BV1xx411c7mD?p=2")
+    "https://www.bilibili.com/video/BV1xx411c7mD?p=2"
     """
-    match = re.search(r'(BV\w+)', url)
-    if match:
-        return f"https://www.bilibili.com/video/{match.group(1)}"
+    # 检测是否有分P参数
+    p_match = re.search(r'[?&]p=(\d+)', url)
+    p_param = f"?p={p_match.group(1)}" if p_match else ""
+
+    # 提取BV号
+    bv_match = re.search(r'(BV\w+)', url)
+    if bv_match:
+        return f"https://www.bilibili.com/video/{bv_match.group(1)}{p_param}"
     return url
 
 
